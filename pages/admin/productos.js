@@ -9,6 +9,7 @@ export default function Productos() {
     precio: '',
     categoria_id: ''
   });
+  const [imagen, setImagen] = useState(null);
 
   useEffect(() => {
     // Cargar productos desde Supabase
@@ -24,11 +25,38 @@ export default function Productos() {
     setNuevoProducto({ ...nuevoProducto, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (e) => {
+    setImagen(e.target.files[0]);
+  };
+
   const agregarProducto = async (e) => {
     e.preventDefault();
-    const { data, error } = await supabase.from('productos').insert([nuevoProducto]);
-    if (error) console.error('Error insertando producto:', error);
-    else setProductos([...productos, data[0]]);
+
+    // Crear un formData para enviar la imagen al servidor
+    const formData = new FormData();
+    formData.append('imagen', imagen);
+
+    // Subir la imagen primero
+    const imageResponse = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const imageData = await imageResponse.json();
+
+    if (imageResponse.ok) {
+      const productoConImagen = {
+        ...nuevoProducto,
+        imagen: imageData.fileName // Almacenar solo el nombre de la imagen
+      };
+
+      // Insertar el producto con el nombre de la imagen en la base de datos
+      const { data, error } = await supabase.from('productos').insert([productoConImagen]);
+      if (error) console.error('Error insertando producto:', error);
+      else setProductos([...productos, data[0]]);
+    } else {
+      console.error('Error subiendo la imagen:', imageData.error);
+    }
   };
 
   return (
@@ -64,9 +92,15 @@ export default function Productos() {
           onChange={handleInputChange}
           required
         />
+        <input
+          type="file"
+          name="imagen"
+          onChange={handleImageChange}
+          required
+        />
         <button type="submit">Agregar Producto</button>
       </form>
-      
+
       <ul>
         {productos.map((producto) => (
           <li key={producto.id}>
