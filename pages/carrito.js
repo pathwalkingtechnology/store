@@ -4,9 +4,16 @@ export default function Carrito() {
   // Estado inicial del carrito (puedes ajustarlo con datos reales)
   const [carrito, setCarrito] = useState([]);
 
-  useEffect(() => {
-    // Simular obtener productos del carrito (esto vendría de una API o localStorage en la práctica)
-    const carritoGuardado = JSON.parse(localStorage.getItem('carrito')) || [];
+ useEffect(() => {
+    // Obtener productos del carrito (desde una API o localStorage)
+    let carritoGuardado = JSON.parse(localStorage.getItem('carrito')) || [];
+    
+    // Establecer la cantidad en 1 si no está definida
+    carritoGuardado = carritoGuardado.map((item) => ({
+      ...item,
+      cantidad: item.cantidad || 1,
+    }));
+
     setCarrito(carritoGuardado);
   }, []);
 
