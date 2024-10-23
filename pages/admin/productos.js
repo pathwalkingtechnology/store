@@ -10,11 +10,11 @@ export default function Productos() {
     categoria_id: ''
   });
   const [imagen, setImagen] = useState(null);
+  const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
-    // Cargar productos desde Supabase
     const fetchProductos = async () => {
-      let { data, error } = await supabase.from('productos').select('*');
+      const { data, error } = await supabase.from('productos').select('*');
       if (error) console.error('Error fetching productos:', error);
       else setProductos(data);
     };
@@ -32,40 +32,55 @@ export default function Productos() {
   const agregarProducto = async (e) => {
     e.preventDefault();
 
-    // Crear un formData para enviar la imagen al servidor
+    if (!imagen) {
+      setMensaje('Por favor selecciona una imagen.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('imagen', imagen);
 
-    // Subir la imagen primero
-    const imageResponse = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const imageResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-    const imageData = await imageResponse.json();
+      const imageData = await imageResponse.json();
 
-    if (imageResponse.ok) {
-      const productoConImagen = {
-        ...nuevoProducto,
-        imagen: imageData.fileName // Almacenar solo el nombre de la imagen
-      };
+      if (imageResponse.ok) {
+        const productoConImagen = {
+          ...nuevoProducto,
+          imagen: imageData.fileName
+        };
 
-      // Insertar el producto con el nombre de la imagen en la base de datos
-      const { data, error } = await supabase.from('productos').insert([productoConImagen]);
-      if (error) console.error('Error insertando producto:', error);
-      else setProductos([...productos, data[0]]);
-    } else {
-      console.error('Error subiendo la imagen:', imageData.error);
+        const { data, error } = await supabase.from('productos').insert([productoConImagen]);
+        if (error) {
+          console.error('Error insertando producto:', error);
+        } else {
+          setProductos([...productos, data[0]]);
+          setNuevoProducto({ nombre: '', descripcion: '', precio: '', categoria_id: '' });
+          setImagen(null); // Limpiar imagen
+          setMensaje('Producto creado con éxito');
+          setTimeout(() => setMensaje(''), 3000); // Eliminar mensaje después de 3 segundos
+        }
+      } else {
+        console.error('Error subiendo la imagen:', imageData.error);
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
     }
   };
 
   return (
     <div>
       <h1>Gestionar Productos</h1>
+      {mensaje && <p style={{ color: 'green' }}>{mensaje}</p>}
       <form onSubmit={agregarProducto}>
         <input
           type="text"
           name="nombre"
+          value={nuevoProducto.nombre}
           placeholder="Nombre del producto"
           onChange={handleInputChange}
           required
@@ -73,6 +88,7 @@ export default function Productos() {
         <input
           type="text"
           name="descripcion"
+          value={nuevoProducto.descripcion}
           placeholder="Descripción"
           onChange={handleInputChange}
           required
@@ -81,6 +97,7 @@ export default function Productos() {
           type="number"
           step="0.01"
           name="precio"
+          value={nuevoProducto.precio}
           placeholder="Precio"
           onChange={handleInputChange}
           required
@@ -88,6 +105,7 @@ export default function Productos() {
         <input
           type="number"
           name="categoria_id"
+          value={nuevoProducto.categoria_id}
           placeholder="ID de la categoría"
           onChange={handleInputChange}
           required

@@ -1,31 +1,34 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import styles from './Header.module.css';  // Importamos el CSS modular
 
 export default function Header({ carritoCount }) {
   return (
-    <header className="bg-white shadow-md py-4">
-      <div className="container mx-auto flex justify-between items-center px-4">
+    <header className={styles.header}>
+      <div className={styles.container}>
         {/* Logo */}
         <Link href="/">
-          <Image src="/logo.png" alt="Logo" width={190} height={80} className="cursor-pointer" />
+          <Image src="/logo.png" alt="Logo" width={190} height={80} className={styles.logo} />
         </Link>
+
         {/* Menú de navegación */}
-        <nav className="space-x-4">
-          <Link href="/" className="text-lg font-medium hover:text-blue-500 transition">
+        <nav className={styles.nav}>
+          <Link href="/" className={styles.navLink}>
             Home
           </Link>
-          <Link href="/productos" className="text-lg font-medium hover:text-blue-500 transition">
+          <Link href="/productos" className={styles.navLink}>
             Productos
           </Link>
-          <Link href="/contacto" className="text-lg font-medium hover:text-blue-500 transition">
+          <Link href="/contacto" className={styles.navLink}>
             Contacto
           </Link>
         </nav>
+
         {/* Carrito */}
         <Link href="/carrito">
-          <div className="relative">
-            <span className="text-lg font-medium">Carrito</span>
-            <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+          <div className={styles.cartContainer}>
+            <span className={styles.cartText}>Carrito</span>
+            <div className={styles.cartCount}>
               {carritoCount}
             </div>
           </div>
