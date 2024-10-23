@@ -10,7 +10,7 @@ export async function middleware(req) {
 
     // Si no hay token, redirigir al login
     if (!token) {
-      return NextResponse.redirect('/login');
+      return NextResponse.redirect('/index');
     }
 
     // Verificar el token y obtener el usuario
@@ -18,7 +18,7 @@ export async function middleware(req) {
 
     // Si no hay usuario o hay un error en la autenticación, redirigir al login
     if (!user || error) {
-      return NextResponse.redirect('/login');
+      return NextResponse.redirect('/index');
     }
   }
 
