@@ -2,22 +2,24 @@ import { NextResponse } from 'next/server';
 import { supabase } from './lib/supabase';
 
 export async function middleware(req) {
-  const { nextUrl, cookies } = req;
-  const token = cookies['auth-token'];
+  const { pathname } = req.nextUrl;
 
-  // Si no hay token, redirigir al login usando una URL absoluta
-  if (!token) {
-    const url = new URL('/login', req.url);  // Construye una URL absoluta
-    return NextResponse.redirect(url);
-  }
+  // Aplicar el middleware solo para rutas específicas, en este caso '/admin'
+  if (pathname.startsWith('/admin')) {
+    const token = req.cookies['auth-token'];
 
-  // Verificar el token y obtener el usuario
-  const { user, error } = await supabase.auth.api.getUser(token);
+    // Si no hay token, redirigir al login
+    if (!token) {
+      return NextResponse.redirect('/login');
+    }
 
-  // Si no hay usuario o hay un error en la autenticación, redirigir al login
-  if (!user || error) {
-    const url = new URL('/login', req.url);  // Construye una URL absoluta
-    return NextResponse.redirect(url);
+    // Verificar el token y obtener el usuario
+    const { user, error } = await supabase.auth.api.getUser(token);
+
+    // Si no hay usuario o hay un error en la autenticación, redirigir al login
+    if (!user || error) {
+      return NextResponse.redirect('/login');
+    }
   }
 
   // Si el usuario está autenticado, continúa con la solicitud
