@@ -61,7 +61,7 @@ export default function Home({ productos }) {
     </h2>
     <p className="text-gray-600 mb-2">{producto.descripcion}</p>
     <p className="text-lg font-bold text-[#FF5B31]">
-      {producto.precio.toFixed(2)} {/* Precio */}
+      $ {producto.precio.toFixed(2)} {/* Precio */}
     </p>
     <button
       onClick={() => agregarAlCarrito(producto)}
