@@ -50,25 +50,27 @@ export default function Home({ productos }) {
         {/* Listado de productos */}
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {productos.map((producto) => (
-            <li key={producto.id} className="border p-4 rounded-lg shadow-lg bg-white">
-              <img
-                src={producto.imagen}
-                alt={producto.nombre}
-                className="w-full h-48 object-cover mb-4 rounded-lg"
-              />
-              <h2 className="text-2xl font-semibold text-[#15557b]"> {/* Azul secundario */}
-                {producto.nombre}
-              </h2>
-              <p className="text-gray-600 mb-2">{producto.descripcion}</p>
-              <p className="text-lg font-bold text-[#FF5B31]">${producto.precio.toFixed(2)}</p> {/* Naranja */}
-              <button
-                onClick={() => agregarAlCarrito(producto)}
-                className="mt-4 bg-[#013254] text-white px-4 py-2 rounded-lg hover:bg-[#15557b] transition-colors" {/* Botón con azul primario y hover */}
-              >
-                Agregar al carrito
-              </button>
-            </li>
-          ))}
+  <li key={producto.id} className="border p-4 rounded-lg shadow-lg bg-white">
+    <img
+      src={producto.imagen}
+      alt={producto.nombre}
+      className="w-full h-48 object-cover mb-4 rounded-lg"
+    />
+    <h2 className="text-2xl font-semibold text-[#15557b]"> {/* Azul secundario */}
+      {producto.nombre}
+    </h2>
+    <p className="text-gray-600 mb-2">{producto.descripcion}</p>
+    <p className="text-lg font-bold text-[#FF5B31]">
+      {producto.precio.toFixed(2)} {/* Precio */}
+    </p>
+    <button
+      onClick={() => agregarAlCarrito(producto)}
+      className="mt-4 bg-[#013254] text-white px-4 py-2 rounded-lg hover:bg-[#15557b] transition-colors"
+    >
+      Agregar al carrito
+    </button>
+  </li>
+))}
         </ul>
 
         {/* Enlace al carrito */}
