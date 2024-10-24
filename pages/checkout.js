@@ -13,6 +13,7 @@ export default function Checkout() {
   const [telefono, setTelefono] = useState('');
   const router = useRouter();
 
+  // Cargar el carrito desde localStorage cuando el componente se monta
   useEffect(() => {
     const carritoGuardado = JSON.parse(localStorage.getItem('carrito')) || [];
     setCarrito(carritoGuardado);
@@ -22,12 +23,12 @@ export default function Checkout() {
     e.preventDefault();
 
     try {
-      // Insertar el pedido en la base de datos
+      // Insertar el pedido en la tabla 'pedidos'
       const { data: pedido, error: pedidoError } = await supabase
         .from('pedidos')
         .insert([
           {
-            usuario_id: null,
+            usuario_id: null, // Usuario no registrado
             total: carrito.reduce((total, item) => total + item.precio * item.cantidad, 0),
             estado: 'pendiente',
           },
@@ -41,13 +42,13 @@ export default function Checkout() {
         return;
       }
 
-      // Insertar los productos relacionados al pedido
+      // Insertar productos en la tabla 'pedidos_productos'
       for (const producto of carrito) {
         const { error: productoError } = await supabase
           .from('pedidos_productos')
           .insert([
             {
-              pedido_id: pedido.id,
+              pedido_id: pedido.id, // Asociar el producto al pedido insertado
               producto_id: producto.id,
               cantidad: producto.cantidad,
             },
@@ -60,12 +61,12 @@ export default function Checkout() {
         }
       }
 
-      // Insertar la información de envío
+      // Insertar la información de envío en la tabla 'envios'
       const { data: envio, error: envioError } = await supabase
         .from('envios')
         .insert([
           {
-            pedido_id: pedido.id,
+            pedido_id: pedido.id, // Asociar el envío al pedido insertado
             direccion: direccion,
             ciudad: ciudad,
             provincia: provincia,
@@ -75,7 +76,7 @@ export default function Checkout() {
         ]);
 
       if (envioError) {
-        console.error('Error al guardar el envío:', envioError);
+        console.error('Error al guardar la información de envío:', envioError);
         setMensaje('Ocurrió un error al procesar la información de envío.');
         return;
       }
@@ -90,12 +91,12 @@ export default function Checkout() {
       Total: $${carrito.reduce((total, item) => total + item.precio * item.cantidad, 0).toFixed(2)}
       `;
 
-      // Redirigir a WhatsApp Web o App con el mensaje y el número de la empresa
-      const numeroEmpresa = '5493884072024';  // Coloca aquí el número de la empresa con código de país
+      // Redirigir a WhatsApp con el mensaje
+      const numeroEmpresa = '5493884072024';  // Cambia este número al de la empresa
       const urlWhatsApp = `https://wa.me/${numeroEmpresa}?text=${encodeURIComponent(mensajeWhatsApp)}`;
       window.location.href = urlWhatsApp;
 
-      // Limpiar formulario y carrito
+      // Limpiar el formulario y el carrito
       setNombre('');
       setDireccion('');
       setCiudad('');
@@ -104,116 +105,60 @@ export default function Checkout() {
       setTelefono('');
       localStorage.removeItem('carrito');
     } catch (error) {
-      console.error('Error en el proceso de checkout:', error);
-      setMensaje('Ocurrió un error inesperado.');
+      console.error('Error inesperado al procesar el pedido:', error);
+      setMensaje('Ocurrió un error inesperado. Intenta nuevamente.');
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-
-      {mensaje && <p className="text-green-600">{mensaje}</p>}
-
-      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Resumen del pedido</h2>
-        <ul className="mb-4">
-          {carrito.length > 0 ? (
-            carrito.map((producto, index) => (
-              <li key={index} className="flex justify-between py-2 border-b">
-                <span>{producto.nombre}</span>
-                <span>${producto.precio.toFixed(2)}</span>
-              </li>
-            ))
-          ) : (
-            <li className="text-gray-500">El carrito está vacío.</li>
-          )}
-        </ul>
-        {carrito.length > 0 && (
-          <div className="text-right font-bold text-xl">
-            Total: ${carrito.reduce((total, item) => total + item.precio * item.cantidad, 0).toFixed(2)}
-          </div>
-        )}
-      </div>
-
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg">
-        {/* Formulario de dirección */}
-        <div className="mb-4">
-          <label className="block text-gray-700">Nombre:</label>
-          <input
-            type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Dirección:</label>
-          <input
-            type="text"
-            value={direccion}
-            onChange={(e) => setDireccion(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Ciudad:</label>
-          <input
-            type="text"
-            value={ciudad}
-            onChange={(e) => setCiudad(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Provincia:</label>
-          <input
-            type="text"
-            value={provincia}
-            onChange={(e) => setProvincia(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Código Postal:</label>
-          <input
-            type="text"
-            value={codigoPostal}
-            onChange={(e) => setCodigoPostal(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="telefono" className="block text-sm font-medium text-gray-700">
-           Número de Teléfono
-          </label>
-          <input
-            type="tel"
-            id="telefono"
-            name="telefono"
-            value={telefono}
-            onChange={(e) => setTelefono(e.target.value)}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Confirmar Pedido
-        </button>
+    <div>
+      <h1>Checkout</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Nombre"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Dirección"
+          value={direccion}
+          onChange={(e) => setDireccion(e.target.value)}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Ciudad"
+          value={ciudad}
+          onChange={(e) => setCiudad(e.target.value)}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Provincia"
+          value={provincia}
+          onChange={(e) => setProvincia(e.target.value)}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Código Postal"
+          value={codigoPostal}
+          onChange={(e) => setCodigoPostal(e.target.value)}
+          required
+        />
+        <input
+          type="tel"
+          placeholder="Teléfono"
+          value={telefono}
+          onChange={(e) => setTelefono(e.target.value)}
+          required
+        />
+        <button type="submit">Realizar Pedido</button>
       </form>
+      {mensaje && <p>{mensaje}</p>}
     </div>
   );
 }
