@@ -13,8 +13,14 @@ export default function AdminLogin() {
 
     try {
       const admin = await loginAdmin(email, password);
-      localStorage.setItem('admin', admin.id);
-      router.push('/admin/dashboard');
+      
+      if (admin && admin.id) {
+        localStorage.setItem('admin', admin.id);
+        console.log('Redirigiendo a /admin/dashboard');
+        router.push('/admin/dashboard'); // o router.replace('/admin/dashboard');
+      } else {
+        setErrorMessage('Invalid login response');
+      }
     } catch (error) {
       setErrorMessage(error.message);
     }
