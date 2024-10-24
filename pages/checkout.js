@@ -91,7 +91,7 @@ export default function Checkout() {
       `;
 
       // Redirigir a WhatsApp Web o App con el mensaje y el número de la empresa
-      const numeroEmpresa = '5491123456789';  // Coloca aquí el número de la empresa con código de país
+      const numeroEmpresa = '5493884072024';  // Coloca aquí el número de la empresa con código de país
       const urlWhatsApp = `https://wa.me/${numeroEmpresa}?text=${encodeURIComponent(mensajeWhatsApp)}`;
       window.location.href = urlWhatsApp;
 

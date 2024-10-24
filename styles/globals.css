@@ -21,7 +21,7 @@ html, body {
 /* Estilos del botón global */
 button {
   padding: 10px 20px;
-  background-color: #00afef;
+  background-color: #FF5B31;
   border: none;
   color: white;
   font-size: 16px;
@@ -30,7 +30,7 @@ button {
 }
 
 button:hover {
-  background-color: #008cbf;
+  background-color: #FF5B51;
 }
 
 /* Formulario de checkout */
