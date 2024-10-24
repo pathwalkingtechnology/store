@@ -1,46 +1,24 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { loginAdmin } from '../../lib/auth';
 
-export default function AdminLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+export default function AdminIndex() {
   const router = useRouter();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const adminId = localStorage.getItem('admin');
 
-    try {
-      const admin = await loginAdmin(email, password);
-      localStorage.setItem('admin', admin.id);
+    // Si el usuario no está autenticado, redirigir a login
+    if (!adminId) {
+      router.push('/admin/login');
+    } else {
+      // Si está autenticado, redirigir al dashboard
       router.push('/admin/dashboard');
-    } catch (error) {
-      setErrorMessage(error.message);
     }
-  };
+  }, [router]);
 
   return (
-    <div className="login-container">
-      <h1>Iniciar Sesión - Admin</h1>
-      {errorMessage && <p>{errorMessage}</p>}
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Iniciar Sesión</button>
-      </form>
+    <div>
+      <h1>Redireccionando...</h1>
     </div>
   );
 }
