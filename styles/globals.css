@@ -21,7 +21,7 @@ html, body {
 /* Estilos del botón global */
 button {
   padding: 10px 20px;
-  background-color: #FF5B31;
+  background-color: #FF5B31; /* Naranja */
   border: none;
   color: white;
   font-size: 16px;
@@ -30,7 +30,7 @@ button {
 }
 
 button:hover {
-  background-color: #FF5B51;
+  background-color: #FF5B51; /* Naranja más claro */
 }
 
 /* Formulario de checkout */
@@ -47,7 +47,7 @@ form input {
   padding: 10px;
   font-size: 16px;
   margin-bottom: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid #D2D3D5; /* Gris */
   border-radius: 5px;
 }
 

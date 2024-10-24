@@ -1,5 +1,5 @@
 .footer {
-  background-color: #2d2d2d;
+  background: linear-gradient(135deg, #013254, #15557b); /* Degradado de azul primario a azul secundario */
   color: white;
   padding: 1.5rem 0;
 }
