@@ -13,90 +13,101 @@ export default function Checkout() {
   const [telefono, setTelefono] = useState('');
   const router = useRouter();
 
-  // Cargar el carrito desde localStorage cuando se monte el componente
   useEffect(() => {
     const carritoGuardado = JSON.parse(localStorage.getItem('carrito')) || [];
     setCarrito(carritoGuardado);
   }, []);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    // Inserta el pedido y obtén el ID del nuevo pedido
-    const { data: pedido, error: pedidoError } = await supabase
-      .from('pedidos')
-      .insert([
-        {
-          usuario_id: null, // Cambia esto si puedes obtener el ID del usuario
-          total: carrito.reduce((total, item) => total + item.precio * item.cantidad, 0),
-          estado: 'pendiente',
-        },
-      ])
-      .select()
-      .single();
+    try {
+      // Insertar el pedido en la base de datos
+      const { data: pedido, error: pedidoError } = await supabase
+        .from('pedidos')
+        .insert([
+          {
+            usuario_id: null,
+            total: carrito.reduce((total, item) => total + item.precio * item.cantidad, 0),
+            estado: 'pendiente',
+          },
+        ])
+        .select()
+        .single();
 
-    if (pedidoError) {
-      console.error('Error al guardar el pedido:', pedidoError);
-      setMensaje('Ocurrió un error al procesar tu pedido.');
-      return;
-    }
+      if (pedidoError) {
+        console.error('Error al guardar el pedido:', pedidoError);
+        setMensaje('Ocurrió un error al procesar tu pedido.');
+        return;
+      }
 
-    // Inserta los productos relacionados al pedido
-    for (const producto of carrito) {
-      const { error: productoError } = await supabase
-        .from('pedidos_productos')  // tabla intermedia si tienes una, o directamente 'pedidos'
+      // Insertar los productos relacionados al pedido
+      for (const producto of carrito) {
+        const { error: productoError } = await supabase
+          .from('pedidos_productos')
+          .insert([
+            {
+              pedido_id: pedido.id,
+              producto_id: producto.id,
+              cantidad: producto.cantidad,
+            },
+          ]);
+
+        if (productoError) {
+          console.error('Error al guardar el producto del pedido:', productoError);
+          setMensaje('Ocurrió un error al agregar productos al pedido.');
+          return;
+        }
+      }
+
+      // Insertar la información de envío
+      const { data: envio, error: envioError } = await supabase
+        .from('envios')
         .insert([
           {
             pedido_id: pedido.id,
-            producto_id: producto.id,
-            cantidad: producto.cantidad,
+            direccion: direccion,
+            ciudad: ciudad,
+            provincia: provincia,
+            codigo_postal: codigoPostal,
+            telefono: telefono,
           },
         ]);
 
-      if (productoError) {
-        console.error('Error al guardar el producto del pedido:', productoError);
-        setMensaje('Ocurrió un error al agregar productos al pedido.');
+      if (envioError) {
+        console.error('Error al guardar el envío:', envioError);
+        setMensaje('Ocurrió un error al procesar la información de envío.');
         return;
       }
+
+      // Construir mensaje para WhatsApp
+      const mensajeWhatsApp = `
+      ¡Nuevo Pedido! 
+      Nombre: ${nombre} 
+      Dirección: ${direccion}, ${ciudad}, ${provincia}, ${codigoPostal}
+      Teléfono: ${telefono}
+      Productos: ${carrito.map((producto) => `${producto.nombre} x${producto.cantidad}`).join(', ')}
+      Total: $${carrito.reduce((total, item) => total + item.precio * item.cantidad, 0).toFixed(2)}
+      `;
+
+      // Redirigir a WhatsApp Web o App con el mensaje y el número de la empresa
+      const numeroEmpresa = '5491123456789';  // Coloca aquí el número de la empresa con código de país
+      const urlWhatsApp = `https://wa.me/${numeroEmpresa}?text=${encodeURIComponent(mensajeWhatsApp)}`;
+      window.location.href = urlWhatsApp;
+
+      // Limpiar formulario y carrito
+      setNombre('');
+      setDireccion('');
+      setCiudad('');
+      setProvincia('');
+      setCodigoPostal('');
+      setTelefono('');
+      localStorage.removeItem('carrito');
+    } catch (error) {
+      console.error('Error en el proceso de checkout:', error);
+      setMensaje('Ocurrió un error inesperado.');
     }
-
-    // Inserta la información de envío
-    const { data: envio, error: envioError } = await supabase
-      .from('envios')
-      .insert([
-        {
-          pedido_id: pedido.id,
-          direccion: direccion,
-          ciudad: ciudad,
-          provincia: provincia,
-          codigo_postal: codigoPostal,
-          telefono: telefono, 
-        },
-      ]);
-
-    if (envioError) {
-      console.error('Error al guardar el envío:', envioError);
-      setMensaje('Ocurrió un error al procesar la información de envío.');
-      return;
-    }
-
-    setMensaje('¡Pedido realizado con éxito!');
-    router.push('/confirmacion');
-
-    // Limpiar formulario y carrito
-    setNombre('');
-    setDireccion('');
-    setCiudad('');
-    setProvincia('');
-    setCodigoPostal('');
-    setTelefono('');
-    localStorage.removeItem('carrito');
-  } catch (error) {
-    console.error('Error en el proceso de checkout:', error);
-    setMensaje('Ocurrió un error inesperado.');
-  }
-};
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -184,17 +195,17 @@ export default function Checkout() {
         <div className="mb-4">
           <label htmlFor="telefono" className="block text-sm font-medium text-gray-700">
            Número de Teléfono
-        </label>
-        <input
-         type="tel"
-         id="telefono"
-         name="telefono"
-         value={telefono}
-         onChange={(e) => setTelefono(e.target.value)}
-        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-        required
-        />
-       </div>
+          </label>
+          <input
+            type="tel"
+            id="telefono"
+            name="telefono"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
 
         <button
           type="submit"
